@@ -1,0 +1,12 @@
+{
+  "domain": "pulson_alarm",
+  "name": "Pulson Alarm",
+  "codeowners": [
+    "@ludeeus"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/ludeeus/pulson_alarm",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/ludeeus/pulson_alarm/issues",
+  "version": "0.1.0"
+}
