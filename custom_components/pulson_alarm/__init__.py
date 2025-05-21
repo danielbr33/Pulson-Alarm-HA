@@ -7,10 +7,12 @@ https://github.com/ludeeus/pulson_alarm
 
 from __future__ import annotations
 
+import os
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-import debugpy
+if os.getenv("HA_DEBUG", "0") == "1":
+    import debugpy
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.loader import async_get_loaded_integration
@@ -38,9 +40,10 @@ async def async_setup_entry(
     entry: IntegrationPulsonAlarmConfigEntry,
 ) -> bool:
     """Set up the debugger."""
-    debugpy.listen(("0.0.0.0", 5678))  # noqa: S104 TODO:delete debugger
-    debugpy.wait_for_client()
-    debugpy.breakpoint()
+    if os.getenv("HA_DEBUG", "0") == "1":
+        debugpy.listen(("0.0.0.0", 5678))  # noqa: S104 TODO:delete debugger
+        debugpy.wait_for_client()
+        debugpy.breakpoint()
     """Set up this integration using UI."""
     coordinator = PulsonAlarmDataUpdateCoordinator(
         hass=hass,

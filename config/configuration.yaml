@@ -1,5 +1,53 @@
 # https://www.home-assistant.io/integrations/default_config/
-default_config:
+# Minimal modules allowing working HA and adding integrations
+# default_config:
+
+# Replaced default_config because it contains moduler not available in container homeassistant causing warnings
+automation:
+binary_sensor:
+calendar:
+camera:
+climate:
+cloud:
+config:
+conversation:
+counter:
+device_tracker:
+fan:
+frontend:
+group:
+history:
+http:
+input_boolean:
+input_datetime:
+input_number:
+input_select:
+input_text:
+light:
+media_player:
+mobile_app:
+notify:
+person:
+persistent_notification:
+scene:
+script:
+sensor:
+sun:
+switch:
+system_health:
+tag:
+timer:
+weather:
+webhook:
+websocket_api:
+zone:
+
+# Not add these because it causes warnings:
+# stream:           ❌ (aktywuje go2rtc)
+# assist_pipeline:  ❌ (wymaga go2rtc/tts)
+# tts:              ❌ (wymaga ffmpeg)
+# go2rtc:           ❌
+
 
 # https://www.home-assistant.io/integrations/homeassistant/
 homeassistant:
