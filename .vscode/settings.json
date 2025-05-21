@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./custom_components",
+        "/usr/local/lib/python3.11/site-packages"
+    ],
+    "python.defaultInterpreterPath": "/usr/local/bin/python"
+}

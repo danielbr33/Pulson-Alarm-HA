@@ -1,19 +1,3 @@
-# Notice
-
-The component and platforms in this repository are not meant to be used by a
-user, but as a "pulsonalarm" that custom component developers can build
-upon, to make more awesome stuff.
-
-HAVE FUN! 😎
-
-## Why?
-
-This is simple, by having custom_components look (README + structure) the same
-it is easier for developers to help each other and for users to start using them.
-
-If you are a developer and you want to add things to this "pulsonalarm" that you think more
-developers will have use for, please open a PR to add it :)
-
 ## What?
 
 This repository contains multiple files, here is a overview:
@@ -35,6 +19,14 @@ File | Purpose | Documentation
 3. Rename all instances of the `pulson_alarm` to `custom_components/<your_integration_domain>` (e.g. `custom_components/awesome_integration`).
 4. Rename all instances of the `Pulson Alarm` to `<Your Integration Name>` (e.g. `Awesome Integration`).
 5. Run the `scripts/develop` to start HA and test out your new integration.
+
+## Debug
+Tools for debugging are automatically installed
+1. Start your system in docker.
+2. The program will hang out on function debugpy.wait_for_client.
+3. Go to tab Run & Debug in VSC.
+4. Select "Attach to Home Assistant" configuration (if you added it earlier in .vscode/launch.json)
+5. Click ▶️ Start debugging and now you are able to use breakpoints in your code
 
 ## Next steps
 
