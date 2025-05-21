@@ -9,17 +9,17 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.loader import Integration
 
-    from .api import IntegrationBlueprintApiClient
-    from .coordinator import BlueprintDataUpdateCoordinator
+    from .api import IntegrationPulsonAlarmApiClient
+    from .coordinator import PulsonAlarmDataUpdateCoordinator
 
 
-type IntegrationBlueprintConfigEntry = ConfigEntry[IntegrationBlueprintData]
+type IntegrationPulsonAlarmConfigEntry = ConfigEntry[IntegrationPulsonAlarmData]
 
 
 @dataclass
-class IntegrationBlueprintData:
-    """Data for the Blueprint integration."""
+class IntegrationPulsonAlarmData:
+    """Data for the PulsonAlarm integration."""
 
-    client: IntegrationBlueprintApiClient
-    coordinator: BlueprintDataUpdateCoordinator
+    client: IntegrationPulsonAlarmApiClient
+    coordinator: PulsonAlarmDataUpdateCoordinator
     integration: Integration
