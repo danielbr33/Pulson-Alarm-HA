@@ -38,7 +38,7 @@ async def async_setup_entry(
     entry: IntegrationPulsonAlarmConfigEntry,
 ) -> bool:
     """Set up the debugger."""
-    debugpy.listen(("0.0.0.0", 5678))
+    debugpy.listen(("0.0.0.0", 5678))  # noqa: S104 TODO:delete debugger
     debugpy.wait_for_client()
     debugpy.breakpoint()
     """Set up this integration using UI."""
