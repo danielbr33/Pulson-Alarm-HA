@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
+import debugpy
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.loader import async_get_loaded_integration
@@ -36,6 +37,10 @@ async def async_setup_entry(
     hass: HomeAssistant,
     entry: IntegrationPulsonAlarmConfigEntry,
 ) -> bool:
+    """Set up the debugger."""
+    debugpy.listen(("0.0.0.0", 5678))
+    debugpy.wait_for_client()
+    debugpy.breakpoint()
     """Set up this integration using UI."""
     coordinator = PulsonAlarmDataUpdateCoordinator(
         hass=hass,
