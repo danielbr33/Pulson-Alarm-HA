@@ -1,3 +1,4 @@
+#!/usr/local/bin python
 """Sample API Client."""
 
 from __future__ import annotations
@@ -40,6 +41,8 @@ class IntegrationPulsonAlarmApiClient:
 
     def __init__(
         self,
+        host: str,
+        port: int,
         username: str,
         password: str,
         session: aiohttp.ClientSession,
@@ -48,6 +51,8 @@ class IntegrationPulsonAlarmApiClient:
         self._username = username
         self._password = password
         self._session = session
+        self._host = host
+        self._port = port
 
     async def async_get_data(self) -> Any:
         """Get data from the API."""

@@ -1,3 +1,4 @@
+#!/usr/local/bin python
 """PulsonAlarmEntity class."""
 
 from __future__ import annotations

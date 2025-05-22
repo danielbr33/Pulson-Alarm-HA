@@ -1,3 +1,4 @@
+#!/usr/local/bin python
 """Adds config flow for PulsonAlarm."""
 
 from __future__ import annotations
@@ -32,6 +33,8 @@ class PulsonAlarmFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 await self._test_credentials(
+                    host=user_input["host"],
+                    port=user_input["port"],
                     username=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )
@@ -62,26 +65,44 @@ class PulsonAlarmFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_USERNAME,
-                        default=(user_input or {}).get(CONF_USERNAME, vol.UNDEFINED),
+                        "host", default=(user_input or {}).get("host", "")
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT,
-                        ),
+                        )
                     ),
-                    vol.Required(CONF_PASSWORD): selector.TextSelector(
+                    vol.Optional(
+                        "port", default=(user_input or {}).get("port", 1883)
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=1,
+                            max=65535,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_USERNAME, default=(user_input or {}).get(CONF_USERNAME, "")
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
+                        )
+                    ),
+                    vol.Optional(CONF_PASSWORD): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.PASSWORD,
-                        ),
+                        )
                     ),
-                },
+                }
             ),
             errors=_errors,
         )
 
-    async def _test_credentials(self, username: str, password: str) -> None:
-        """Validate credentials."""
+    async def _test_credentials(
+        self, host: str, port: int, username: str, password: str
+    ) -> None:
         client = IntegrationPulsonAlarmApiClient(
+            host=host,
+            port=port,
             username=username,
             password=password,
             session=async_create_clientsession(self.hass),

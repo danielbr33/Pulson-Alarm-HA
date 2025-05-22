@@ -8,5 +8,8 @@
   "documentation": "https://github.com/ludeeus/pulson_alarm",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/ludeeus/pulson_alarm/issues",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "requirements": [
+    "asyncio-mqtt==0.16.1"
+  ]
 }

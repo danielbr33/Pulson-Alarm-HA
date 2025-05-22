@@ -1,3 +1,4 @@
+#!/usr/local/bin python
 """Constants for pulson_alarm."""
 
 from logging import Logger, getLogger

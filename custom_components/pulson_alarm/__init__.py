@@ -1,3 +1,4 @@
+#!/usr/local/bin python
 """
 Custom integration to integrate pulson_alarm with Home Assistant.
 
@@ -21,6 +22,7 @@ from .api import IntegrationPulsonAlarmApiClient
 from .const import DOMAIN, LOGGER
 from .coordinator import PulsonAlarmDataUpdateCoordinator
 from .data import IntegrationPulsonAlarmData
+from .mqtt_client import PulsonMqttClient
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -40,10 +42,25 @@ async def async_setup_entry(
     entry: IntegrationPulsonAlarmConfigEntry,
 ) -> bool:
     """Set up the debugger."""
-    if os.getenv("HA_DEBUG", "0") == "1":
+    if os.getenv("HA_DEBUG", "0") == "1" and not debugpy.is_client_connected():
         debugpy.listen(("0.0.0.0", 5678))  # noqa: S104 TODO:delete debugger
         debugpy.wait_for_client()
         debugpy.breakpoint()
+
+    """Setup MQTT connection."""
+    config = entry.data
+    host = config["host"]
+    port = int(config.get("port", 1883))
+    username = config.get("username") or ""
+    password = config.get("password") or ""
+
+    async def handle_message(topic: str, payload: str) -> None:
+        LOGGER.info("Odebrano z MQTT: %s = %s", topic, payload)
+
+    mqtt_client = PulsonMqttClient(hass, host, port, username, password)
+    await mqtt_client.start(handle_message)
+    hass.data.setdefault(DOMAIN, {})["mqtt_client"] = mqtt_client
+
     """Set up this integration using UI."""
     coordinator = PulsonAlarmDataUpdateCoordinator(
         hass=hass,
@@ -53,6 +70,8 @@ async def async_setup_entry(
     )
     entry.runtime_data = IntegrationPulsonAlarmData(
         client=IntegrationPulsonAlarmApiClient(
+            host=entry.data["host"],
+            port=entry.data["port"],
             username=entry.data[CONF_USERNAME],
             password=entry.data[CONF_PASSWORD],
             session=async_get_clientsession(hass),
@@ -75,6 +94,8 @@ async def async_unload_entry(
     entry: IntegrationPulsonAlarmConfigEntry,
 ) -> bool:
     """Handle removal of an entry."""
+    client = hass.data[DOMAIN]["mqtt_client"]
+    await client.stop()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 

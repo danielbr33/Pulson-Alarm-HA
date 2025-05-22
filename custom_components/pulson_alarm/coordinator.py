@@ -1,3 +1,4 @@
+#!/usr/local/bin python
 """DataUpdateCoordinator for pulson_alarm."""
 
 from __future__ import annotations
