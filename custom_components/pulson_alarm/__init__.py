@@ -14,12 +14,19 @@ from typing import TYPE_CHECKING
 
 if os.getenv("HA_DEBUG", "0") == "1":
     import debugpy
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.const import Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import IntegrationPulsonAlarmApiClient
-from .const import DOMAIN, LOGGER
+from .const import (
+    CONF_CLOUD_HOST,
+    CONF_CLOUD_PASSWORD,
+    CONF_CLOUD_PORT,
+    CONF_CLOUD_USER,
+    DOMAIN,
+    LOGGER,
+)
 from .coordinator import PulsonAlarmDataUpdateCoordinator
 from .data import IntegrationPulsonAlarmData
 from .mqtt_client import PulsonMqttClient
@@ -77,10 +84,10 @@ async def async_setup_entry(
     )
     entry.runtime_data = IntegrationPulsonAlarmData(
         client=IntegrationPulsonAlarmApiClient(
-            host=entry.data["host"],
-            port=entry.data["port"],
-            username=entry.data[CONF_USERNAME],
-            password=entry.data[CONF_PASSWORD],
+            host=entry.data[CONF_CLOUD_HOST],
+            port=entry.data[CONF_CLOUD_PORT],
+            username=entry.data[CONF_CLOUD_USER],
+            password=entry.data[CONF_CLOUD_PASSWORD],
             session=async_get_clientsession(hass),
         ),
         integration=async_get_loaded_integration(hass, entry.domain),
