@@ -1,4 +1,3 @@
-#!/usr/local/bin python
 """
 Custom integration to integrate pulson_alarm with Home Assistant.
 

@@ -1,4 +1,3 @@
-#!/usr/local/bin python
 """Adds config flow for PulsonAlarm."""
 
 from __future__ import annotations

@@ -1,4 +1,3 @@
-#!/usr/local/bin python
 """Custom types for pulson_alarm."""
 
 from __future__ import annotations

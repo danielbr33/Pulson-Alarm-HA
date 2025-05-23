@@ -1,4 +1,3 @@
-#!/usr/local/bin python
 """Class handling MQTT connection."""
 
 from __future__ import annotations

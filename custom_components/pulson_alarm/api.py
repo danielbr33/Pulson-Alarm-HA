@@ -1,4 +1,3 @@
-#!/usr/local/bin python
 """Sample API Client."""
 
 from __future__ import annotations

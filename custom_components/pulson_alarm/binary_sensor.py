@@ -1,4 +1,3 @@
-#!/usr/local/bin python
 """Binary sensor platform for pulson_alarm."""
 
 from __future__ import annotations
