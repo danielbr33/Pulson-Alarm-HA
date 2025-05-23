@@ -15,3 +15,7 @@ coverage.xml
 # Home Assistant configuration
 config/*
 !config/configuration.yaml
+
+
+# Credentials
+custom_components/pulson_alarm/default_log.json

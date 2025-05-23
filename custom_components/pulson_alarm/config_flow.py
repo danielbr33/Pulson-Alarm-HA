@@ -3,6 +3,9 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
@@ -30,6 +33,19 @@ class PulsonAlarmFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> config_entries.ConfigFlowResult:
         """Handle a flow initialized by the user."""
         _errors = {}
+
+        default_values = {}
+        try:
+            file_path = Path(__file__).parent / "default_log.json"
+            with file_path.open("r", encoding="utf-8") as f:
+                default_values = json.load(f)
+        except FileNotFoundError:
+            LOGGER.warning("default_config.json nie istnieje.")
+        except json.JSONDecodeError as e:
+            LOGGER.error("Błąd JSON w default_config.json: %s", e)
+        except OSError as e:
+            LOGGER.error("Błąd I/O przy próbie wczytania default_config.json: %s", e)
+
         if user_input is not None:
             try:
                 await self._test_credentials(
@@ -65,7 +81,7 @@ class PulsonAlarmFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        "host", default=(user_input or {}).get("host", "")
+                        "host", default=default_values.get("host", "")
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT,
@@ -73,14 +89,14 @@ class PulsonAlarmFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     ),
                     vol.Required(
                         "serial_number",
-                        default=(user_input or {}).get("serial_number", ""),
+                        default=default_values.get("serial_number", ""),
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT,
                         )
                     ),
                     vol.Optional(
-                        "port", default=(user_input or {}).get("port", 1883)
+                        "port", default_values.get("port", 1883)
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=1,
@@ -89,13 +105,15 @@ class PulsonAlarmFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         )
                     ),
                     vol.Optional(
-                        CONF_USERNAME, default=(user_input or {}).get(CONF_USERNAME, "")
+                        CONF_USERNAME, default=default_values.get(CONF_USERNAME, "")
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT,
                         )
                     ),
-                    vol.Optional(CONF_PASSWORD): selector.TextSelector(
+                    vol.Optional(
+                        CONF_PASSWORD, default=default_values.get(CONF_PASSWORD, "")
+                    ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.PASSWORD,
                         )
