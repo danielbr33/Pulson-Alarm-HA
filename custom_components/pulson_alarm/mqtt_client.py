@@ -32,6 +32,8 @@ class PulsonMqttClient:
         self._username = username
         self._password = password
         self.serial_number = serial_number
+        self._connected = False
+
         tls_context = ssl.create_default_context()
         self._client = Client(
             hostname=host,
@@ -46,7 +48,7 @@ class PulsonMqttClient:
 
     async def start(
         self,
-        on_message: Callable[[str, str], Awaitable[None]],
+        on_message: Callable[[str, str], Awaitable[None]] | None,
     ) -> None:
         """Connect to MQTT."""
 
@@ -56,6 +58,7 @@ class PulsonMqttClient:
                 async with self._client.messages() as messages:
                     try:
                         await self._client.connect()
+                        self._connected = True
                     except MqttError as e:
                         LOGGER.error("Error MQTT connection: code %s", e)
                         LOGGER.error(
@@ -77,12 +80,19 @@ class PulsonMqttClient:
                         else:
                             topic = str(message.topic)
                         LOGGER.debug("MQTT received: %s -> %s", topic, payload)
-                        await on_message(topic, payload)
+                        if on_message is not None:
+                            await on_message(topic, payload)
             except MqttError as err:
                 LOGGER.error("MQTT error: %s", err)
+                self._connected = True
+                return
 
         self._running = True
         self._task = asyncio.create_task(_reader())
+        await asyncio.sleep(0.5)
+        if not self._connected:
+            msg = "Failed to connect to MQTT"
+            raise MqttError(msg)
 
     async def stop(self) -> None:
         """Disconnect MQTT."""

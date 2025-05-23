@@ -21,6 +21,6 @@ type IntegrationPulsonAlarmConfigEntry = ConfigEntry[IntegrationPulsonAlarmData]
 class IntegrationPulsonAlarmData:
     """Data for the PulsonAlarm integration."""
 
-    client: IntegrationPulsonAlarmApiClient
+    api_client: IntegrationPulsonAlarmApiClient
     coordinator: PulsonAlarmDataUpdateCoordinator
     integration: Integration

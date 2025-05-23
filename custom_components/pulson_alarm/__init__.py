@@ -20,10 +20,6 @@ from homeassistant.loader import async_get_loaded_integration
 
 from .api import IntegrationPulsonAlarmApiClient
 from .const import (
-    CONF_CLOUD_HOST,
-    CONF_CLOUD_PASSWORD,
-    CONF_CLOUD_PORT,
-    CONF_CLOUD_USER,
     DOMAIN,
     LOGGER,
 )
@@ -57,7 +53,7 @@ async def async_setup_entry(
     """Setup MQTT connection."""
     config = entry.data
     host = config["host"]
-    port = int(config.get("port", 1883))
+    port = int(config.get("port", 8883))
     username = config.get("username") or ""
     password = config.get("password") or ""
     serial_number = config.get("serial_number") or ""
@@ -73,7 +69,11 @@ async def async_setup_entry(
         port=port,
     )
     await mqtt_client.start(handle_message)
-    hass.data.setdefault(DOMAIN, {})["mqtt_client"] = mqtt_client
+
+    api_client = IntegrationPulsonAlarmApiClient(
+        session=async_get_clientsession(hass),
+        mqtt_client=mqtt_client,
+    )
 
     """Set up this integration using UI."""
     coordinator = PulsonAlarmDataUpdateCoordinator(
@@ -81,18 +81,19 @@ async def async_setup_entry(
         logger=LOGGER,
         name=DOMAIN,
         update_interval=timedelta(hours=1),
+        api_client=api_client,
     )
+
     entry.runtime_data = IntegrationPulsonAlarmData(
-        client=IntegrationPulsonAlarmApiClient(
-            host=entry.data[CONF_CLOUD_HOST],
-            port=entry.data[CONF_CLOUD_PORT],
-            username=entry.data[CONF_CLOUD_USER],
-            password=entry.data[CONF_CLOUD_PASSWORD],
-            session=async_get_clientsession(hass),
-        ),
+        api_client=api_client,
         integration=async_get_loaded_integration(hass, entry.domain),
         coordinator=coordinator,
     )
+
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
+        "mqtt_client": mqtt_client,
+        "coordinator": coordinator,
+    }
 
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
     await coordinator.async_config_entry_first_refresh()
@@ -108,7 +109,7 @@ async def async_unload_entry(
     entry: IntegrationPulsonAlarmConfigEntry,
 ) -> bool:
     """Handle removal of an entry."""
-    client = hass.data[DOMAIN]["mqtt_client"]
+    client = hass.data[DOMAIN][entry.entry_id]["mqtt_client"]
     await client.stop()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
