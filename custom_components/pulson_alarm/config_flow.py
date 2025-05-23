@@ -71,6 +71,14 @@ class PulsonAlarmFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                             type=selector.TextSelectorType.TEXT,
                         )
                     ),
+                    vol.Required(
+                        "serial_number",
+                        default=(user_input or {}).get("serial_number", ""),
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
+                        )
+                    ),
                     vol.Optional(
                         "port", default=(user_input or {}).get("port", 1883)
                     ): selector.NumberSelector(

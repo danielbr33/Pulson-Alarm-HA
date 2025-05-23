@@ -12,8 +12,6 @@ if TYPE_CHECKING:
 
 from asyncio_mqtt import Client, MqttError
 
-if TYPE_CHECKING:
-    from homeassistant.core import HomeAssistant
 from .const import LOGGER
 
 
@@ -22,18 +20,18 @@ class PulsonMqttClient:
 
     def __init__(
         self,
-        hass: HomeAssistant,
-        host: str = "",
+        host: str,
+        username: str,
+        password: str,
+        serial_number: str,
         port: int = 8883,
-        username: str = "",
-        password: str = "",
     ) -> None:
         """Set data needed to establish connection."""
-        self._hass = hass
         self._host = host
         self._port = port
         self._username = username
         self._password = password
+        self.serial_number = serial_number
         tls_context = ssl.create_default_context()
         self._client = Client(
             hostname=host,
@@ -41,6 +39,7 @@ class PulsonMqttClient:
             username=username,
             password=password,
             tls_context=tls_context,
+            keepalive=10,
         )
         self._task = None
         self._running = False
@@ -66,7 +65,7 @@ class PulsonMqttClient:
                             self._username,
                         )
                         return
-                    await self._client.subscribe("system/0020004a3831500220353843/#")
+                    await self._client.subscribe(f"system/{self.serial_number}/#")
                     LOGGER.info("MQTT subscribed to alarm/#")
                     async for message in messages:
                         if isinstance(message.payload, bytes):

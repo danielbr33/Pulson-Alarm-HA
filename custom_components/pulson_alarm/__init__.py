@@ -53,11 +53,18 @@ async def async_setup_entry(
     port = int(config.get("port", 1883))
     username = config.get("username") or ""
     password = config.get("password") or ""
+    serial_number = config.get("serial_number") or ""
 
     async def handle_message(topic: str, payload: str) -> None:
         LOGGER.info("Odebrano z MQTT: %s = %s", topic, payload)
 
-    mqtt_client = PulsonMqttClient(hass, host, port, username, password)
+    mqtt_client = PulsonMqttClient(
+        host=host,
+        username=username,
+        password=password,
+        serial_number=serial_number,
+        port=port,
+    )
     await mqtt_client.start(handle_message)
     hass.data.setdefault(DOMAIN, {})["mqtt_client"] = mqtt_client
 
