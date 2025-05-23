@@ -3,6 +3,7 @@
 target-version = "py313"
 
 [lint]
+extend-ignore = ["EXE002"]
 select = [
     "ALL",
 ]
