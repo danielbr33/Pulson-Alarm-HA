@@ -9,4 +9,4 @@ isal
 
 # Needed to work my application
 debugpy==1.8.14
-asyncio-mqtt==0.16.1
+asyncio-mqtt==0.16.2
