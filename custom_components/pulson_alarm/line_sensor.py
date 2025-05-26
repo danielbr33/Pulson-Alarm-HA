@@ -2,7 +2,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from pulson_alarm.const import LOGGER
+from pulson_alarm.const import DOMAIN, LOGGER
 
 STATUS_MAP = {
     0: ("Nieznany", "mdi:help-circle"),
@@ -42,6 +42,16 @@ class AlarmLineStatusSensor(CoordinatorEntity, SensorEntity):
         status = _safe_int(data.get("status"))
         return STATUS_MAP.get(status, ("", "mdi:help-circle"))[1]
 
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, f"line_{self._input_id}")},
+            "name": f"Linia {self._input_id}",
+            "manufacturer": "Pulson Alarm",
+            "model": "Wejście alarmowe",
+            "entry_type": "service",
+        }
+
 
 class AlarmLineBlockEnableSensor(CoordinatorEntity, SensorEntity):
     """Sensor encja: czy linia może być blokowana."""
@@ -66,6 +76,16 @@ class AlarmLineBlockEnableSensor(CoordinatorEntity, SensorEntity):
             if _safe_int(data.get("block_enable"))
             else "mdi:shield-off"
         )
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, f"line_{self._input_id}")},
+            "name": f"Linia {self._input_id}",
+            "manufacturer": "Pulson Alarm",
+            "model": "Wejście alarmowe",
+            "entry_type": "service",  # lub "device" – opcjonalne
+        }
 
 
 class AlarmLineBlockSwitch(CoordinatorEntity, SwitchEntity):
@@ -95,3 +115,13 @@ class AlarmLineBlockSwitch(CoordinatorEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs):
         await self._api.set_input_block_state(self._input_id, False)
         self.async_write_ha_state()
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, f"line_{self._input_id}")},
+            "name": f"Linia {self._input_id}",
+            "manufacturer": "Pulson Alarm",
+            "model": "Wejście alarmowe",
+            "entry_type": "service",  # lub "device" – opcjonalne
+        }
