@@ -14,6 +14,14 @@ STATUS_MAP = {
 }
 
 
+def _safe_int(value, default=0):
+    """Convert value to int safely, return default on failure."""
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
+
 class AlarmInputSensor(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator, input_id, api):
         super().__init__(coordinator)
@@ -25,21 +33,21 @@ class AlarmInputSensor(CoordinatorEntity, SensorEntity):
     @property
     def state(self):
         input_data = self._api.input_get_state(self._input_id)
-        status = input_data.get("status")
+        status = _safe_int(input_data.get("status"))
         LOGGER.debug("Sensor [%s] status: %s", self._input_id, status)
         return STATUS_MAP.get(status, ("Nieznany",))[0]
 
     @property
     def icon(self):
         input_data = self._api.input_get_state(self._input_id)
-        status = input_data.get("status")
+        status = _safe_int(input_data.get("status"))
         return STATUS_MAP.get(status, ("", "mdi:help-circle"))[1]
 
     @property
     def extra_state_attributes(self):
         input_data = self._api.input_get_state(self._input_id) or {}
         return {
-            "block": bool(input_data.get("block", False)),
-            "block_status": bool(input_data.get("block_status", False)),
+            "block": bool(_safe_int(input_data.get("block", 0))),
+            "block_enable": bool(_safe_int(input_data.get("block_enable", 0))),
             "name": input_data.get("name", f"Wejście {self._input_id}"),
         }
