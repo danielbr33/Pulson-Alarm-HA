@@ -40,7 +40,7 @@ class PulsonMqttClient:
             username=username,
             password=password,
             tls_context=tls_context,
-            keepalive=10,
+            keepalive=60,
         )
         self._task = None
         self._running = False

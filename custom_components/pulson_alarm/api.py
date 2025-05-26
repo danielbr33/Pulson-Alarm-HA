@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 import socket
 from typing import TYPE_CHECKING, Any
 
@@ -49,6 +50,25 @@ class IntegrationPulsonAlarmApiClient:
         """Sample API Client."""
         self._session = session
         self._mqtt_client = mqtt_client
+        self._inputs: dict[str, dict] = {}
+        self._update_inputs_callback = None
+
+    def update_input_param(self, input_id: str, key: str, value: Any):
+        if input_id not in self._inputs:
+            self._inputs[input_id] = {}
+        self._inputs[input_id][key] = value
+        if self._update_inputs_callback:
+            self._update_inputs_callback()
+
+    def get_input_state(self, input_id: str) -> dict:
+        return self._inputs.get(input_id, {})
+
+    @property
+    def inputs(self):
+        return self._inputs
+
+    def set_update_inputs_callback(self, callback: Callable[[], None]):
+        self._update_inputs_callback = callback
 
     async def async_get_data(self) -> Any:
         """Get data from the API."""
