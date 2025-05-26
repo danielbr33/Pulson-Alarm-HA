@@ -51,24 +51,33 @@ class IntegrationPulsonAlarmApiClient:
         self._session = session
         self._mqtt_client = mqtt_client
         self._inputs: dict[str, dict] = {}
-        self._update_inputs_callback = None
+        self._input_update_callback = None
+        self._input_added_callback = None
 
-    def update_input_param(self, input_id: str, key: str, value: Any):
+    def input_set_update_callback(self, callback: Callable[[], None]):
+        self._input_update_callback = callback
+
+    def input_set_added_callback(self, callback: Callable[[str], None]):
+        self._input_added_callback = callback
+
+    def input_update_param(self, input_id: str, key: str, value: Any):
+        if input_id not in self._inputs and self._input_added_callback:
+            self._input_added_callback(input_id)
         if input_id not in self._inputs:
             self._inputs[input_id] = {}
         self._inputs[input_id][key] = value
-        if self._update_inputs_callback:
-            self._update_inputs_callback()
+        if self._input_update_callback:
+            self._input_update_callback()
 
-    def get_input_state(self, input_id: str) -> dict:
+    def input_get_state(self, input_id: str) -> dict:
         return self._inputs.get(input_id, {})
+
+    def input_get_all_ids(self):
+        return list(self._inputs)
 
     @property
     def inputs(self):
         return self._inputs
-
-    def set_update_inputs_callback(self, callback: Callable[[], None]):
-        self._update_inputs_callback = callback
 
     async def async_get_data(self) -> Any:
         """Get data from the API."""

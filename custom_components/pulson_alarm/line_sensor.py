@@ -24,20 +24,20 @@ class AlarmInputSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def state(self):
-        input_data = self._api.get_input_state(self._input_id)
+        input_data = self._api.input_get_state(self._input_id)
         status = input_data.get("status")
         LOGGER.debug("Sensor [%s] status: %s", self._input_id, status)
         return STATUS_MAP.get(status, ("Nieznany",))[0]
 
     @property
     def icon(self):
-        input_data = self._api.get_input_state(self._input_id)
+        input_data = self._api.input_get_state(self._input_id)
         status = input_data.get("status")
         return STATUS_MAP.get(status, ("", "mdi:help-circle"))[1]
 
     @property
     def extra_state_attributes(self):
-        input_data = self._api.get_input_state(self._input_id) or {}
+        input_data = self._api.input_get_state(self._input_id) or {}
         return {
             "block": bool(input_data.get("block", False)),
             "block_status": bool(input_data.get("block_status", False)),

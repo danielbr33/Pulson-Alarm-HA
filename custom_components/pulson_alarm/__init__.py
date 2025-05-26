@@ -11,8 +11,6 @@ import os
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from .line_sensor import AlarmInputSensor
-
 if os.getenv("HA_DEBUG", "0") == "1":
     import debugpy
 from homeassistant.const import Platform
@@ -86,12 +84,17 @@ async def async_setup_entry(
         coordinator=coordinator,
     )
 
-    api_client.set_update_inputs_callback(coordinator.async_update_listeners)
-
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
         "mqtt_client": mqtt_client,
         "coordinator": coordinator,
     }
+
+    # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
+    await coordinator.async_config_entry_first_refresh()
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+
+    api_client.input_set_update_callback(coordinator.async_update_listeners)
 
     # MQTT receive handler with api
     async def handle_message(topic: str, payload: str) -> None:
@@ -101,18 +104,12 @@ async def async_setup_entry(
             input_id = parts[-2]
             key = parts[-1]
             try:
-                api_client.update_input_param(input_id, key, payload)
+                api_client.input_update_param(input_id, key, payload)
             except Exception as e:
                 LOGGER.warning("Nie udało się sparsować danych wejścia: %s", e)
 
     # Start MQTT z handlerem
     await mqtt_client.start(handle_message)
-
-    # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-    await coordinator.async_config_entry_first_refresh()
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-
     return True
 
 
