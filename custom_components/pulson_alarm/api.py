@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 import socket
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
@@ -51,23 +51,24 @@ class IntegrationPulsonAlarmApiClient:
         self._session = session
         self._mqtt_client = mqtt_client
         self._inputs: dict[str, dict] = {}
-        self._input_update_callback = None
-        self._input_added_callback = None
+        self._input_update_callbacks: list[Callable[[], None]] = []
+        self._input_added_callbacks: list[Callable[[str], None]] = []
 
-    def input_set_update_callback(self, callback: Callable[[], None]):
-        self._input_update_callback = callback
+    def input_register_update_callback(self, callback: Callable[[], None]):
+        self._input_update_callbacks.append(callback)
 
-    def input_set_added_callback(self, callback: Callable[[str], None]):
-        self._input_added_callback = callback
+    def input_register_added_callback(self, callback: Callable[[str], None]):
+        self._input_added_callbacks.append(callback)
 
     def input_update_param(self, input_id: str, key: str, value: Any):
-        if input_id not in self._inputs and self._input_added_callback:
-            self._input_added_callback(input_id)
+        if input_id not in self._inputs:
+            for cb in self._input_added_callbacks:
+                cb(input_id)
         if input_id not in self._inputs:
             self._inputs[input_id] = {}
         self._inputs[input_id][key] = value
-        if self._input_update_callback:
-            self._input_update_callback()
+        for cb in self._input_update_callbacks:
+            cb()
 
     def input_get_state(self, input_id: str) -> dict:
         return self._inputs.get(input_id, {})
@@ -76,8 +77,17 @@ class IntegrationPulsonAlarmApiClient:
         return list(self._inputs)
 
     @property
-    def inputs(self):
+    def inputs(self) -> dict[str, dict]:
         return self._inputs
+
+        # === MQTT KONTROLA ===
+
+    async def set_input_block_state(self, input_id: str, block: bool):
+        """Ustaw stan blokady linii i opublikuj przez MQTT."""
+        topic = f"alarm/inputs/{input_id}/block/set"
+        payload = "1" if block else "0"
+        # await self._mqtt_client.publish(topic, payload)
+        self.input_update_param(input_id, "block", int(block))  # lokalna aktualizacja
 
     async def async_get_data(self) -> Any:
         """Get data from the API."""

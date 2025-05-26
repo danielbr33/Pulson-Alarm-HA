@@ -1,6 +1,5 @@
-"""Entity of line."""
-
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from pulson_alarm.const import LOGGER
@@ -15,39 +14,84 @@ STATUS_MAP = {
 
 
 def _safe_int(value, default=0):
-    """Convert value to int safely, return default on failure."""
     try:
         return int(value)
     except (ValueError, TypeError):
         return default
 
 
-class AlarmInputSensor(CoordinatorEntity, SensorEntity):
+class AlarmLineStatusSensor(CoordinatorEntity, SensorEntity):
+    """Sensor encja: stan linii (status)."""
+
     def __init__(self, coordinator, input_id, api):
         super().__init__(coordinator)
         self._input_id = input_id
         self._api = api
-        self._attr_unique_id = f"pulson_input_{input_id}"
-        self._attr_name = f"Wejście {input_id}"
+        self._attr_unique_id = f"pulson_line_status_{input_id}"
+        self._attr_name = f"Linia {input_id} – Stan"
 
     @property
     def state(self):
-        input_data = self._api.input_get_state(self._input_id)
-        status = _safe_int(input_data.get("status"))
-        LOGGER.debug("Sensor [%s] status: %s", self._input_id, status)
+        data = self._api.input_get_state(self._input_id)
+        status = _safe_int(data.get("status"))
         return STATUS_MAP.get(status, ("Nieznany",))[0]
 
     @property
     def icon(self):
-        input_data = self._api.input_get_state(self._input_id)
-        status = _safe_int(input_data.get("status"))
+        data = self._api.input_get_state(self._input_id)
+        status = _safe_int(data.get("status"))
         return STATUS_MAP.get(status, ("", "mdi:help-circle"))[1]
 
+
+class AlarmLineBlockEnableSensor(CoordinatorEntity, SensorEntity):
+    """Sensor encja: czy linia może być blokowana."""
+
+    def __init__(self, coordinator, input_id, api):
+        super().__init__(coordinator)
+        self._input_id = input_id
+        self._api = api
+        self._attr_unique_id = f"pulson_line_block_enable_{input_id}"
+        self._attr_name = f"Linia {input_id} – Blokada dostępna"
+
     @property
-    def extra_state_attributes(self):
-        input_data = self._api.input_get_state(self._input_id) or {}
-        return {
-            "block": bool(_safe_int(input_data.get("block", 0))),
-            "block_enable": bool(_safe_int(input_data.get("block_enable", 0))),
-            "name": input_data.get("name", f"Wejście {self._input_id}"),
-        }
+    def state(self):
+        data = self._api.input_get_state(self._input_id)
+        return "Tak" if _safe_int(data.get("block_enable")) else "Nie"
+
+    @property
+    def icon(self):
+        data = self._api.input_get_state(self._input_id)
+        return (
+            "mdi:shield-check"
+            if _safe_int(data.get("block_enable"))
+            else "mdi:shield-off"
+        )
+
+
+class AlarmLineBlockSwitch(CoordinatorEntity, SwitchEntity):
+    """Switch encja: przełączanie stanu blokady linii."""
+
+    def __init__(self, coordinator, input_id, api):
+        super().__init__(coordinator)
+        self._input_id = input_id
+        self._api = api
+        self._attr_unique_id = f"pulson_line_block_{input_id}"
+        self._attr_name = f"Linia {input_id} – Blokada"
+
+    @property
+    def is_on(self) -> bool:
+        data = self._api.input_get_state(self._input_id)
+        return bool(_safe_int(data.get("block")))
+
+    @property
+    def available(self) -> bool:
+        data = self._api.input_get_state(self._input_id)
+        return bool(_safe_int(data.get("block_enable")))
+
+    async def async_turn_on(self, **kwargs):
+        await self._api.set_input_block_state(self._input_id, True)
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs):
+        await self._api.set_input_block_state(self._input_id, False)
+        self.async_write_ha_state()

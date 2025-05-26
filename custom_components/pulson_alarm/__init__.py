@@ -89,12 +89,7 @@ async def async_setup_entry(
         "coordinator": coordinator,
     }
 
-    # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-    await coordinator.async_config_entry_first_refresh()
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-
-    api_client.input_set_update_callback(coordinator.async_update_listeners)
+    api_client.input_register_update_callback(coordinator.async_update_listeners)
 
     # MQTT receive handler with api
     async def handle_message(topic: str, payload: str) -> None:
@@ -110,6 +105,11 @@ async def async_setup_entry(
 
     # Start MQTT z handlerem
     await mqtt_client.start(handle_message)
+
+    # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
+    await coordinator.async_config_entry_first_refresh()
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True
 
 
