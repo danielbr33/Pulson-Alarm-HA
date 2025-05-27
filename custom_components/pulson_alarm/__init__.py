@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 if os.getenv("HA_DEBUG", "0") == "1":
     import debugpy
+from homeassistant.components.frontend import async_register_built_in_panel
 from homeassistant.const import Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.loader import async_get_loaded_integration
@@ -37,6 +38,21 @@ PLATFORMS: list[Platform] = [
 ]
 
 
+async def register_panel(hass):
+    panel_dir = os.path.join(os.path.dirname(__file__), "www", "panel")
+    hass.http.register_static_path("/pulson_alarm_panel", panel_dir, False)
+
+    async_register_built_in_panel(
+        hass,
+        component_name="iframe",
+        sidebar_title="Pulson Alarm",
+        sidebar_icon="mdi:shield-home",
+        frontend_url_path="pulson-alarm",
+        config={"url": "/pulson_alarm_panel/index.html"},
+        require_admin=False,
+    )
+
+
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -46,7 +62,7 @@ async def async_setup_entry(
     if os.getenv("HA_DEBUG", "0") == "1" and not debugpy.is_client_connected():
         debugpy.listen(("0.0.0.0", 5678))  # noqa: S104 TODO:delete debugger
         debugpy.wait_for_client()
-        debugpy.breakpoint()
+        # debugpy.breakpoint()
 
     """Setup MQTT connection."""
     config = entry.data
@@ -110,6 +126,7 @@ async def async_setup_entry(
     await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    await register_panel(hass)
     return True
 
 
