@@ -1,3 +1,5 @@
+"""Main handler of switch entities responsible for adding them and refreshing."""
+
 from collections.abc import Callable
 
 from homeassistant.config_entries import ConfigEntry

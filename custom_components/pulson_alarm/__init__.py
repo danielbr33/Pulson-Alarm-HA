@@ -9,17 +9,22 @@ from __future__ import annotations
 
 import os
 from datetime import timedelta
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if os.getenv("HA_DEBUG", "0") == "1":
     import debugpy
 from homeassistant.components.frontend import async_register_built_in_panel
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.const import Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import IntegrationPulsonAlarmApiClient
 from .const import (
+    CLOUD_TOPIC_ACTION_INDEX,
+    CLOUD_TOPIC_MODULE_INDEX,
+    CLOUD_TOPIC_NUMBER_INDEX,
     DOMAIN,
     LOGGER,
 )
@@ -38,9 +43,15 @@ PLATFORMS: list[Platform] = [
 ]
 
 
-async def register_panel(hass):
-    panel_dir = os.path.join(os.path.dirname(__file__), "www", "panel")
-    hass.http.register_static_path("/pulson_alarm_panel", panel_dir, False)
+async def register_panel(hass: HomeAssistant) -> None:
+    """Register cudtom panel of integration."""
+    panel_dir = Path(__file__).parent / "www" / "panel"
+    config = StaticPathConfig(
+        url_path="/pulson_alarm_panel",
+        path=str(panel_dir),
+        cache_headers=False,
+    )
+    await hass.http.async_register_static_paths([config])
 
     async_register_built_in_panel(
         hass,
@@ -62,7 +73,7 @@ async def async_setup_entry(
     if os.getenv("HA_DEBUG", "0") == "1" and not debugpy.is_client_connected():
         debugpy.listen(("0.0.0.0", 5678))  # noqa: S104 TODO:delete debugger
         debugpy.wait_for_client()
-        # debugpy.breakpoint()
+        # debugpy.breakpoint()  # noqa: ERA001
 
     """Setup MQTT connection."""
     config = entry.data
@@ -111,12 +122,15 @@ async def async_setup_entry(
     async def handle_message(topic: str, payload: str) -> None:
         LOGGER.info("Odebrano z MQTT: %s = %s", topic, payload)
         parts = topic.split("/")
-        if len(parts) >= 3 and parts[-3] == "inputs":
-            input_id = parts[-2]
-            key = parts[-1]
+        if (
+            len(parts) > CLOUD_TOPIC_MODULE_INDEX
+            and parts[CLOUD_TOPIC_MODULE_INDEX] == "inputs"
+        ):
+            input_id = parts[CLOUD_TOPIC_NUMBER_INDEX]
+            key = parts[CLOUD_TOPIC_ACTION_INDEX]
             try:
                 api_client.input_update_param(input_id, key, payload)
-            except Exception as e:
+            except (ValueError, TypeError) as e:
                 LOGGER.warning("Nie udało się sparsować danych wejścia: %s", e)
 
     # Start MQTT z handlerem
@@ -126,7 +140,7 @@ async def async_setup_entry(
     await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-    # await register_panel(hass)
+    # await register_panel(hass)  # noqa: ERA001
     return True
 
 
