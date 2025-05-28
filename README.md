@@ -28,6 +28,14 @@ Tools for debugging are automatically installed
 4. Select "Attach to Home Assistant" configuration (if you added it earlier in .vscode/launch.json)
 5. Click ▶️ Start debugging and now you are able to use breakpoints in your code
 
+## Configure Frontend of panel
+1. cd pulson_frontend
+2. npm install
+3. npm run dev
+4. npm run build
+5. cp -r dist/* ../custom_components/pulson_alarm/www/panel/
+Instrunction 3rd allow to test site separated from HA (not sure if it's possible). The site is integrated with HA and may by tested as menu panel. You can skip 3rd step.
+
 ## Next steps
 
 These are some next steps you may want to look into:

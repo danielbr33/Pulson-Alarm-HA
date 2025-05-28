@@ -5,6 +5,9 @@
     "@ludeeus"
   ],
   "config_flow": true,
+  "dependencies": [
+    "http"
+  ],
   "documentation": "https://github.com/ludeeus/pulson_alarm",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/ludeeus/pulson_alarm/issues",

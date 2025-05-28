@@ -40,7 +40,7 @@ class PulsonMqttClient:
             username=username,
             password=password,
             tls_context=tls_context,
-            keepalive=10,
+            keepalive=60,
         )
         self._task = None
         self._running = False
@@ -99,3 +99,26 @@ class PulsonMqttClient:
         if self._task:
             self._task.cancel()
         await self._client.disconnect()
+
+    async def publish(
+        self, topic: str, payload: str, *, retain: bool = False, qos: int = 0
+    ) -> None:
+        """
+        Publish a message to the MQTT broker.
+
+        Args:
+            topic: Topic string to publish to.
+            payload: Payload to send.
+            retain: Whether the message should be retained.
+            qos: Quality of Service level (0, 1, or 2).
+
+        """
+        if not self._connected:
+            LOGGER.warning("Attempted to publish while MQTT is disconnected.")
+            return
+        try:
+            topic = f"system/{self.serial_number}/{topic}"
+            await self._client.publish(topic, payload, qos=qos, retain=retain)
+            LOGGER.debug("MQTT published: %s -> %s", topic, payload)
+        except MqttError as e:
+            LOGGER.error("Failed to publish MQTT message: %s", e)

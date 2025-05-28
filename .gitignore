@@ -19,3 +19,6 @@ config/*
 
 # Credentials
 custom_components/pulson_alarm/default_log.json
+
+# My ignores
+custom_components/pulson_alarm/www/panel/

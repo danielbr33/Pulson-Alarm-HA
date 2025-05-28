@@ -1,67 +1,48 @@
-"""Switch platform for pulson_alarm."""
+"""Main handler of switch entities responsible for adding them and refreshing."""
 
-from __future__ import annotations
+from collections.abc import Callable
 
-from typing import TYPE_CHECKING, Any
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
+from .api import IntegrationPulsonAlarmApiClient
+from .const import DOMAIN
+from .coordinator import PulsonAlarmDataUpdateCoordinator
+from .line_sensor import AlarmLineBlockSwitch
 
-from .entity import IntegrationPulsonAlarmEntity
 
-if TYPE_CHECKING:
-    from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+def create_block_switch_adder(
+    coordinator: PulsonAlarmDataUpdateCoordinator,
+    api: IntegrationPulsonAlarmApiClient,
+    async_add_entities: AddEntitiesCallback,
+) -> Callable[[str], None]:
+    """Create a function that adds new switch entities for block control dynamically."""
+    registered: dict[str, AlarmLineBlockSwitch] = {}
 
-    from .coordinator import PulsonAlarmDataUpdateCoordinator
-    from .data import IntegrationPulsonAlarmConfigEntry
+    def add_block_switch(input_id: str) -> None:
+        if input_id in registered:
+            return
 
-ENTITY_DESCRIPTIONS = (
-    SwitchEntityDescription(
-        key="pulson_alarm",
-        name="Integration Switch",
-        icon="mdi:format-quote-close",
-    ),
-)
+        switch_entity = AlarmLineBlockSwitch(coordinator, input_id, api)
+        registered[input_id] = switch_entity
+        async_add_entities([switch_entity])
+
+    return add_block_switch
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: ARG001 Unused function argument: `hass`
-    entry: IntegrationPulsonAlarmConfigEntry,
+    hass: HomeAssistant,
+    entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the switch platform."""
-    async_add_entities(
-        IntegrationPulsonAlarmSwitch(
-            coordinator=entry.runtime_data.coordinator,
-            entity_description=entity_description,
-        )
-        for entity_description in ENTITY_DESCRIPTIONS
-    )
+    """Set up switch platform."""
+    data = hass.data[DOMAIN][entry.entry_id]
+    coordinator: PulsonAlarmDataUpdateCoordinator = data["coordinator"]
+    api: IntegrationPulsonAlarmApiClient = coordinator.api_client
 
+    add_block_switch = create_block_switch_adder(coordinator, api, async_add_entities)
+    api.input_register_added_callback(add_block_switch)
 
-class IntegrationPulsonAlarmSwitch(IntegrationPulsonAlarmEntity, SwitchEntity):
-    """pulson_alarm switch class."""
-
-    def __init__(
-        self,
-        coordinator: PulsonAlarmDataUpdateCoordinator,
-        entity_description: SwitchEntityDescription,
-    ) -> None:
-        """Initialize the switch class."""
-        super().__init__(coordinator)
-        self.entity_description = entity_description
-
-    @property
-    def is_on(self) -> bool:
-        """Return true if the switch is on."""
-        return self.coordinator.data.get("title", "") == "foo"
-
-    async def async_turn_on(self, **_: Any) -> None:
-        """Turn on the switch."""
-        await self.coordinator.config_entry.runtime_data.client.async_set_title("bar")
-        await self.coordinator.async_request_refresh()
-
-    async def async_turn_off(self, **_: Any) -> None:
-        """Turn off the switch."""
-        await self.coordinator.config_entry.runtime_data.client.async_set_title("foo")
-        await self.coordinator.async_request_refresh()
+    for input_id in api.input_get_all_ids():
+        add_block_switch(input_id)
