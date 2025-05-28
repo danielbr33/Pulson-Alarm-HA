@@ -8,7 +8,6 @@ from .api import IntegrationPulsonAlarmApiClient
 from .const import DOMAIN
 from .coordinator import PulsonAlarmDataUpdateCoordinator
 from .line_sensor import (
-    AlarmLineBlockEnableSensor,
     AlarmLineStatusSensor,
 )
 
@@ -20,19 +19,16 @@ def create_input_entity_adder(
 ) -> Callable[[str], None]:
     """Create a function that adds new input entities dynamically."""
     registered_status: dict[str, AlarmLineStatusSensor] = {}
-    registered_block_enable: dict[str, AlarmLineBlockEnableSensor] = {}
 
     def add_input_entity(input_id: str) -> None:
         if input_id in registered_status:
             return  # already added
 
         status_entity = AlarmLineStatusSensor(coordinator, input_id, api)
-        block_enable_entity = AlarmLineBlockEnableSensor(coordinator, input_id, api)
 
         registered_status[input_id] = status_entity
-        registered_block_enable[input_id] = block_enable_entity
 
-        async_add_entities([status_entity, block_enable_entity])
+        async_add_entities([status_entity])
 
     return add_input_entity
 

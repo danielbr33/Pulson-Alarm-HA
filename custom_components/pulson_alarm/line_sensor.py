@@ -53,41 +53,6 @@ class AlarmLineStatusSensor(CoordinatorEntity, SensorEntity):
         }
 
 
-class AlarmLineBlockEnableSensor(CoordinatorEntity, SensorEntity):
-    """Sensor encja: czy linia może być blokowana."""
-
-    def __init__(self, coordinator, input_id, api):
-        super().__init__(coordinator)
-        self._input_id = input_id
-        self._api = api
-        self._attr_unique_id = f"pulson_line_block_enable_{input_id}"
-        self._attr_name = f"Linia {input_id} – Blokada dostępna"
-
-    @property
-    def state(self):
-        data = self._api.input_get_state(self._input_id)
-        return "Tak" if _safe_int(data.get("block_enable")) else "Nie"
-
-    @property
-    def icon(self):
-        data = self._api.input_get_state(self._input_id)
-        return (
-            "mdi:shield-check"
-            if _safe_int(data.get("block_enable"))
-            else "mdi:shield-off"
-        )
-
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, f"line_{self._input_id}")},
-            "name": f"Linia {self._input_id}",
-            "manufacturer": "Pulson Alarm",
-            "model": "Wejście alarmowe",
-            "entry_type": "service",  # lub "device" – opcjonalne
-        }
-
-
 class AlarmLineBlockSwitch(CoordinatorEntity, SwitchEntity):
     """Switch encja: przełączanie stanu blokady linii."""
 
@@ -108,6 +73,11 @@ class AlarmLineBlockSwitch(CoordinatorEntity, SwitchEntity):
         data = self._api.input_get_state(self._input_id)
         return bool(_safe_int(data.get("block_enable")))
 
+    @property
+    def extra_state_attributes(self):
+        data = self._api.input_get_state(self._input_id)
+        return {"blokada_dostępna": bool(_safe_int(data.get("block_enable")))}
+
     async def async_turn_on(self, **kwargs):
         await self._api.set_input_block_state(self._input_id, True)
         self.async_write_ha_state()
@@ -123,5 +93,5 @@ class AlarmLineBlockSwitch(CoordinatorEntity, SwitchEntity):
             "name": f"Linia {self._input_id}",
             "manufacturer": "Pulson Alarm",
             "model": "Wejście alarmowe",
-            "entry_type": "service",  # lub "device" – opcjonalne
+            "entry_type": "device",
         }
