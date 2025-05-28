@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 import async_timeout
 
+from pulson_alarm.const import CONF_USER_DEFAULT_CODE
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -109,9 +111,11 @@ class IntegrationPulsonAlarmApiClient:
 
     async def set_input_block_state(self, input_id: str, *, block: bool) -> None:
         """Change blockade state in API and send to MQTT."""
-        topic = f"alarm/inputs/{input_id}/block/set"
-        payload = "1" if block else "0"
-        # await self._mqtt_client.publish(topic, payload)
+        topic = f"inputs/{input_id}/block_set"
+        payload = (
+            f"{CONF_USER_DEFAULT_CODE}1" if block else f"{CONF_USER_DEFAULT_CODE}0"
+        )
+        await self._mqtt_client.publish(topic, payload, retain=True)
         self.input_update_param(input_id, "block", int(block))
 
     async def async_get_data(self) -> Any:
