@@ -12,6 +12,7 @@ from .coordinator import PulsonAlarmDataUpdateCoordinator
 from .line_sensor import (
     AlarmLineStatusSensor,
 )
+from .partition_sensor import AlarmPartitionSensor
 
 
 def create_input_entity_adder(
@@ -35,6 +36,27 @@ def create_input_entity_adder(
     return add_input_entity
 
 
+def create_partition_entity_adder(
+    coordinator: PulsonAlarmDataUpdateCoordinator,
+    api: IntegrationPulsonAlarmApiClient,
+    async_add_entities: AddEntitiesCallback,
+) -> Callable[[str], None]:
+    """Create a function that adds new partition entities dynamically."""
+    registered_partitions: dict[str, AlarmPartitionSensor] = {}
+
+    def add_partition_entity(partition_id: str) -> None:
+        if partition_id in registered_partitions:
+            return
+
+        sensor = AlarmPartitionSensor(coordinator, partition_id, api)
+
+        registered_partitions[partition_id] = sensor
+
+        async_add_entities([sensor])
+
+    return add_partition_entity
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -49,6 +71,14 @@ async def async_setup_entry(
     add_input_entity = create_input_entity_adder(coordinator, api, async_add_entities)
     api.input_register_added_callback(add_input_entity)
 
-    # Add already known inputs
+    # Register callback for dynamic partition entity creation
+    add_partition_entity = create_partition_entity_adder(
+        coordinator, api, async_add_entities
+    )
+    api.partition_register_added_callback(add_partition_entity)
+
+    # Add already known entities
     for input_id in api.input_get_all_ids():
         add_input_entity(input_id)
+    for partition_id in api.partition_get_all_ids():
+        add_partition_entity(partition_id)

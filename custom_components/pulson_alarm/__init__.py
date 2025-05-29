@@ -116,7 +116,7 @@ async def async_setup_entry(
         "coordinator": coordinator,
     }
 
-    api_client.input_register_update_callback(coordinator.async_update_listeners)
+    api_client.entity_register_update_callback(coordinator.async_update_listeners)
 
     # MQTT receive handler with api
     async def handle_message(topic: str, payload: str) -> None:
@@ -128,10 +128,24 @@ async def async_setup_entry(
         ):
             input_id = parts[CLOUD_TOPIC_NUMBER_INDEX]
             key = parts[CLOUD_TOPIC_ACTION_INDEX]
+            if payload.__len__ == 0:
+                return
             try:
                 api_client.input_update_param(input_id, key, payload)
             except (ValueError, TypeError) as e:
-                LOGGER.warning("Nie udało się sparsować danych wejścia: %s", e)
+                LOGGER.warning("Problem with parsing input state: %s", e)
+        elif (
+            len(parts) > CLOUD_TOPIC_MODULE_INDEX
+            and parts[CLOUD_TOPIC_MODULE_INDEX] == "partitions"
+        ):
+            partition_id = parts[CLOUD_TOPIC_NUMBER_INDEX]
+            key = parts[CLOUD_TOPIC_ACTION_INDEX]
+            if payload.__len__ == 0:
+                return
+            try:
+                api_client.partition_update_param(partition_id, key, payload)
+            except (ValueError, TypeError) as e:
+                LOGGER.warning("Problem with parsing partition state: %s", e)
 
     # Start MQTT z handlerem
     await mqtt_client.start(handle_message)
