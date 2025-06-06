@@ -103,6 +103,7 @@ class AlarmLineBlockSwitch(CoordinatorEntity, SwitchEntity):
         self._api = api
         self._attr_unique_id = f"pulson_line_block_{input_id}"
         self._attr_name = f"Linia {input_id} - Blokada"
+        self._attr_icon = "mdi:block-helper"
 
     @property
     def is_on(self) -> bool:
