@@ -49,11 +49,11 @@ def create_partition_switch_adder(
             return
 
         switch_entity = AlarmPartitionArmButton(coordinator, partition_id, api)
-        switch__night_entity = AlarmPartitionArmNightButton(
+        switch_night_entity = AlarmPartitionArmNightButton(
             coordinator, partition_id, api
         )
-        registered[partition_id] = [switch_entity, switch__night_entity]
-        async_add_entities([switch_entity, switch__night_entity])
+        registered[partition_id] = [switch_entity, switch_night_entity]
+        async_add_entities([switch_entity, switch_night_entity])
 
     return add_partition_switch
 

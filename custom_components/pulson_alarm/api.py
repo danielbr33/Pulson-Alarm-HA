@@ -163,13 +163,13 @@ class IntegrationPulsonAlarmApiClient:
     async def partition_arm(self, partition_id: str) -> None:
         """Arm partition, send to MQTT."""
         topic = f"partitions/{partition_id}/set_arm"
-        payload = f"{CONF_USER_DEFAULT_CODE}1"
+        payload = f"{CONF_USER_DEFAULT_CODE}/1"
         await self._mqtt_client.publish(topic, payload, retain=False)
 
     async def partition_disarm(self, partition_id: str) -> None:
         """Disarm partition, send to MQTT."""
         topic = f"partitions/{partition_id}/set_disarm"
-        payload = f"{CONF_USER_DEFAULT_CODE}0"
+        payload = f"{CONF_USER_DEFAULT_CODE}/0"
         await self._mqtt_client.publish(topic, payload, retain=False)
 
     async def partition_arm_night(self, partition_id: str) -> None:

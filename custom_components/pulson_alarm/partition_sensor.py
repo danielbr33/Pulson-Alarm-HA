@@ -8,8 +8,8 @@ Includes:
 
 from enum import IntEnum
 
-from homeassistant.components.button import ButtonEntity
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from pulson_alarm.api import IntegrationPulsonAlarmApiClient
@@ -178,7 +178,7 @@ class AlarmPartitionSensor(CoordinatorEntity, SensorEntity):
         }
 
 
-class AlarmPartitionArmButton(CoordinatorEntity, ButtonEntity):
+class AlarmPartitionArmButton(CoordinatorEntity, SwitchEntity):
     """
     Switch entity for enabling arming or disarming partition.
 
@@ -196,7 +196,8 @@ class AlarmPartitionArmButton(CoordinatorEntity, ButtonEntity):
         self._partition_id = partition_id
         self._api = api
         self._attr_unique_id = f"pulson_partition_arm_button_{partition_id}"
-        self._attr_name = f"Partycja {partition_id} - Uzbrój"
+        self._attr_name = f"Partycja {partition_id} - Uzbrojenie"
+        self._attr_icon = "mdi:shield-lock"
 
     @property
     def is_on(self) -> bool:
@@ -232,7 +233,7 @@ class AlarmPartitionArmButton(CoordinatorEntity, ButtonEntity):
         }
 
 
-class AlarmPartitionArmNightButton(CoordinatorEntity, ButtonEntity):
+class AlarmPartitionArmNightButton(CoordinatorEntity, SwitchEntity):
     """
     Switch entity for enabling night arming or disarming partition.
 
@@ -249,8 +250,9 @@ class AlarmPartitionArmNightButton(CoordinatorEntity, ButtonEntity):
         super().__init__(coordinator)
         self._partition_id = partition_id
         self._api = api
-        self._attr_unique_id = f"pulson_partition_arm_button_{partition_id}"
-        self._attr_name = f"Partycja {partition_id} - Uzbrój"
+        self._attr_unique_id = f"pulson_partition_arm_night_button_{partition_id}"
+        self._attr_name = f"Partycja {partition_id} - Uzbrojenie nocne"
+        self._attr_icon = "mdi:shield-home"
 
     @property
     def is_on(self) -> bool:
@@ -262,9 +264,7 @@ class AlarmPartitionArmNightButton(CoordinatorEntity, ButtonEntity):
     def available(self) -> bool:
         """Return True if the partition can be armed."""
         data = self._api.partition_get_state(self._partition_id)
-        return bool(_safe_int(data.get("ready"))) and bool(
-            _safe_int(data.get("night_mode"))
-        )
+        return bool(_safe_int(data.get("ready"))) and data.get("night_mode") == "true"
 
     async def async_turn_on(self) -> None:
         """Send command to arm partition."""
