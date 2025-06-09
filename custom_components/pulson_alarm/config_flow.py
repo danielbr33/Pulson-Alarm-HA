@@ -116,8 +116,8 @@ class PulsonAlarmFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
                 ),
                 vol.Optional(
-                    "Code",
-                    default=default_values.get("Code", "8888"),
+                    "code",
+                    default=default_values.get("code", "8888"),
                 ): selector.TextSelector(
                     selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                 ),
