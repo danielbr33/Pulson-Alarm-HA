@@ -51,11 +51,9 @@ async def async_setup_entry(
     coordinator: PulsonAlarmDataUpdateCoordinator = data["coordinator"]
     api: IntegrationPulsonAlarmApiClient = coordinator.api_client
 
-    # Callback do dynamicznego dodawania
     add_alarm_panel = create_alarm_panel_adder(coordinator, api, async_add_entities)
     api.partition_register_added_callback(add_alarm_panel)
 
-    # Dodanie encji dla już znanych partycji
     for partition_id in api.partition_get_all_ids():
         add_alarm_panel(partition_id)
 
@@ -75,7 +73,7 @@ class PulsonAlarmPanel(AlarmControlPanelEntity, CoordinatorEntity):
         self._api = api
         self._attr_unique_id = f"{DOMAIN}_alarm_panel_{partition_id}"
         self._attr_name = f"Partycja {partition_id}"
-        self._attr_code_format = "number"
+        self._attr_code_format = "number"  # type: ignore  # noqa: PGH003
 
         self._attr_supported_features = (
             AlarmControlPanelEntityFeature.ARM_HOME
@@ -105,22 +103,22 @@ class PulsonAlarmPanel(AlarmControlPanelEntity, CoordinatorEntity):
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
-        await self._api.partition_disarm(self._partition_id)
+        await self._api.partition_disarm(self._partition_id, code)
         self.async_write_ha_state()
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         """Send arm command."""
-        await self._api.partition_arm(self._partition_id)
+        await self._api.partition_arm(self._partition_id, code)
         self.async_write_ha_state()
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
         """Send 'home' (stay) arm command. Can be same as 'away'."""
-        await self._api.partition_arm(self._partition_id)
+        await self._api.partition_arm(self._partition_id, code)
         self.async_write_ha_state()
 
     async def async_alarm_arm_night(self, code: str | None = None) -> None:
         """Send night arm command."""
-        await self._api.partition_arm_night(self._partition_id)
+        await self._api.partition_arm_night(self._partition_id, code)
         self.async_write_ha_state()
 
     @property

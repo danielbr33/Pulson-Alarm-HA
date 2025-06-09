@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import ssl
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -14,31 +15,37 @@ from asyncio_mqtt import Client, MqttError
 from .const import LOGGER
 
 
+@dataclass
+class PulsonConfig:
+    """Config data for mqtt connection."""
+
+    host: str
+    username: str
+    password: str
+    serial_number: str
+    port: int = 8883
+    user_code: str = "8888"
+
+
 class PulsonMqttClient:
     """Handler of MQTT connection."""
 
-    def __init__(
-        self,
-        host: str,
-        username: str,
-        password: str,
-        serial_number: str,
-        port: int = 8883,
-    ) -> None:
+    def __init__(self, config: PulsonConfig) -> None:
         """Set data needed to establish connection."""
-        self._host = host
-        self._port = port
-        self._username = username
-        self._password = password
-        self.serial_number = serial_number
+        self._host = config.host
+        self._username = config.username
+        self._password = config.password
+        self._serial_number = config.serial_number
+        self._port = config.port
+        self._user_code = config.user_code
         self._connected = False
 
         tls_context = ssl.create_default_context()
         self._client = Client(
-            hostname=host,
-            port=port,
-            username=username,
-            password=password,
+            hostname=self._host,
+            port=self._port,
+            username=self._username,
+            password=self._password,
             tls_context=tls_context,
             keepalive=60,
         )
@@ -59,7 +66,7 @@ class PulsonMqttClient:
                         await self._client.connect()
                         self._connected = True
                     except MqttError as e:
-                        LOGGER.error("Error MQTT connection: code %s", e)
+                        LOGGER.error("Error MQTT connection: %s", e)
                         LOGGER.error(
                             "host: %s, port: %s, user: %s",
                             self._host,
@@ -67,7 +74,7 @@ class PulsonMqttClient:
                             self._username,
                         )
                         return
-                    await self._client.subscribe(f"system/{self.serial_number}/#")
+                    await self._client.subscribe(f"system/{self._serial_number}/#")
                     LOGGER.info("MQTT subscribed to alarm/#")
                     async for message in messages:
                         if isinstance(message.payload, bytes):
@@ -117,7 +124,40 @@ class PulsonMqttClient:
             LOGGER.warning("Attempted to publish while MQTT is disconnected.")
             return
         try:
-            topic = f"system/{self.serial_number}/{topic}"
+            topic = f"system/{self._serial_number}/{topic}"
+            await self._client.publish(topic, payload, qos=qos, retain=retain)
+            LOGGER.debug("MQTT published: %s -> %s", topic, payload)
+        except MqttError as e:
+            LOGGER.error("Failed to publish MQTT message: %s", e)
+
+    async def publish_with_code(
+        self,
+        topic: str,
+        payload: str,
+        *,
+        retain: bool = False,
+        qos: int = 0,
+        code: str | None = None,
+    ) -> None:
+        """
+        Publish a message to the MQTT broker with authorization of code.
+
+        Args:
+            topic: Topic string to publish to.
+            payload: Payload to send.
+            retain: Whether the message should be retained.
+            qos: Quality of Service level (0, 1, or 2).
+            code: code of user
+
+        """
+        if not self._connected:
+            LOGGER.warning("Attempted to publish while MQTT is disconnected.")
+            return
+        try:
+            if code is None:
+                code = self._user_code
+            payload = f"{code}/{payload}"
+            topic = f"system/{self._serial_number}/{topic}"
             await self._client.publish(topic, payload, qos=qos, retain=retain)
             LOGGER.debug("MQTT published: %s -> %s", topic, payload)
         except MqttError as e:

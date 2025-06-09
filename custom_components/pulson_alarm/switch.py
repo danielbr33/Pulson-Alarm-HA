@@ -39,7 +39,7 @@ def create_input_switch_adder(
 def create_partition_switch_adder(
     coordinator: PulsonAlarmDataUpdateCoordinator,
     api: IntegrationPulsonAlarmApiClient,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddEntitiesCallback,  # noqa: ARG001
 ) -> Callable[[str], None]:
     """Create a function that adds new switch entities of partition."""
     registered: dict[str, list] = {}
@@ -53,7 +53,7 @@ def create_partition_switch_adder(
             coordinator, partition_id, api
         )
         registered[partition_id] = [switch_entity, switch_night_entity]
-        async_add_entities([switch_entity, switch_night_entity])
+        # async_add_entities([switch_entity, switch_night_entity])  # noqa: ERA001
 
     return add_partition_switch
 

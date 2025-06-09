@@ -8,8 +8,6 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 import async_timeout
 
-from pulson_alarm.const import CONF_USER_DEFAULT_CODE
-
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -109,13 +107,15 @@ class IntegrationPulsonAlarmApiClient:
         """Return the full internal dictionary of all inputs and their parameters."""
         return self._inputs
 
-    async def set_input_block_state(self, input_id: str, *, block: bool) -> None:
+    async def set_input_block_state(
+        self, input_id: str, *, block: bool, code: str | None = None
+    ) -> None:
         """Change blockade state in API and send to MQTT."""
         topic = f"inputs/{input_id}/block_set"
-        payload = (
-            f"{CONF_USER_DEFAULT_CODE}1" if block else f"{CONF_USER_DEFAULT_CODE}0"
+        payload = "1" if block else "0"
+        await self._mqtt_client.publish_with_code(
+            topic, payload, retain=False, code=code
         )
-        await self._mqtt_client.publish(topic, payload, retain=True)
         self.input_update_param(input_id, "block", int(block))
 
     def partition_register_added_callback(
@@ -160,23 +160,33 @@ class IntegrationPulsonAlarmApiClient:
         """Return the full dictionary of all partitions and their parameters."""
         return self._partitions
 
-    async def partition_arm(self, partition_id: str) -> None:
+    async def partition_arm(self, partition_id: str, code: str | None = None) -> None:
         """Arm partition, send to MQTT."""
         topic = f"partitions/{partition_id}/set_arm"
-        payload = f"{CONF_USER_DEFAULT_CODE}/1"
-        await self._mqtt_client.publish(topic, payload, retain=False)
+        payload = "1"
+        await self._mqtt_client.publish_with_code(
+            topic, payload, retain=False, code=code
+        )
 
-    async def partition_disarm(self, partition_id: str) -> None:
+    async def partition_disarm(
+        self, partition_id: str, code: str | None = None
+    ) -> None:
         """Disarm partition, send to MQTT."""
         topic = f"partitions/{partition_id}/set_disarm"
-        payload = f"{CONF_USER_DEFAULT_CODE}/0"
-        await self._mqtt_client.publish(topic, payload, retain=False)
+        payload = "0"
+        await self._mqtt_client.publish_with_code(
+            topic, payload, retain=False, code=code
+        )
 
-    async def partition_arm_night(self, partition_id: str) -> None:
+    async def partition_arm_night(
+        self, partition_id: str, code: str | None = None
+    ) -> None:
         """Night arm partition, send to MQTT."""
         topic = f"partitions/{partition_id}/set_arm"
-        payload = f"{CONF_USER_DEFAULT_CODE}2"
-        await self._mqtt_client.publish(topic, payload, retain=False)
+        payload = "2"
+        await self._mqtt_client.publish_with_code(
+            topic, payload, retain=False, code=code
+        )
 
     async def async_get_data(self) -> Any:
         """Get data from the API."""
