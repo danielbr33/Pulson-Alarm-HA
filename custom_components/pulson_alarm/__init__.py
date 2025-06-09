@@ -40,6 +40,7 @@ if TYPE_CHECKING:
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.SWITCH,
+    Platform.ALARM_CONTROL_PANEL,
 ]
 
 
