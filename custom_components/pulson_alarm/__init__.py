@@ -30,7 +30,7 @@ from .const import (
 )
 from .coordinator import PulsonAlarmDataUpdateCoordinator
 from .data import IntegrationPulsonAlarmData
-from .mqtt_client import PulsonMqttClient
+from .mqtt_client import PulsonConfig, PulsonMqttClient
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -40,6 +40,7 @@ if TYPE_CHECKING:
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.SWITCH,
+    Platform.ALARM_CONTROL_PANEL,
 ]
 
 
@@ -82,14 +83,17 @@ async def async_setup_entry(
     username = config.get("username") or ""
     password = config.get("password") or ""
     serial_number = config.get("serial_number") or ""
+    user_code = config.get("code") or ""
 
-    mqtt_client = PulsonMqttClient(
+    cfg = PulsonConfig(
         host=host,
         username=username,
         password=password,
         serial_number=serial_number,
         port=port,
+        user_code=user_code,
     )
+    mqtt_client = PulsonMqttClient(cfg)
 
     api_client = IntegrationPulsonAlarmApiClient(
         session=async_get_clientsession(hass),

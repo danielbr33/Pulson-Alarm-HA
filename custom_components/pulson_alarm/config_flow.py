@@ -12,7 +12,7 @@ from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from slugify import slugify
 
-from pulson_alarm.mqtt_client import PulsonMqttClient
+from pulson_alarm.mqtt_client import PulsonConfig, PulsonMqttClient
 
 from .api import (
     IntegrationPulsonAlarmApiClient,
@@ -115,6 +115,12 @@ class PulsonAlarmFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 ): selector.TextSelector(
                     selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
                 ),
+                vol.Optional(
+                    "code",
+                    default=default_values.get("code", "8888"),
+                ): selector.TextSelector(
+                    selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+                ),
             }
         )
 
@@ -132,13 +138,16 @@ class PulsonAlarmFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         mqtt_password: str,
     ) -> None:
         """Test if provided credentials allow access to the API and MQTT."""
-        mqtt_client = PulsonMqttClient(
+        LOGGER.info("Start testing credentials")
+        cfg = PulsonConfig(
             host=mqtt_host,
-            port=int(mqtt_port),
             username=mqtt_username,
             password=mqtt_password,
             serial_number="",
+            port=int(mqtt_port),
+            user_code="",
         )
+        mqtt_client = PulsonMqttClient(cfg)
 
         try:
             try:
