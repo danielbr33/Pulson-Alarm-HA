@@ -85,6 +85,8 @@ class IntegrationPulsonAlarmApiClient:
         Finally, all registered 'input update' callbacks are called to notify the system
         (e.g., trigger entity updates in Home Assistant).
         """
+        if value == "":
+            return
         if input_id not in self._inputs:
             for cb in self._input_added_callbacks:
                 cb(input_id)

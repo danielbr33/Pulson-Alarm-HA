@@ -158,7 +158,7 @@ async def async_setup_entry(
     await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-    # await register_panel(hass)  # noqa: ERA001
+    await register_panel(hass)  # noqa: ERA001
     return True
 
 
@@ -169,6 +169,7 @@ async def async_unload_entry(
     """Handle removal of an entry."""
     client = hass.data[DOMAIN][entry.entry_id]["mqtt_client"]
     await client.stop()
+    hass.components.frontend.async_remove_panel("pulson-alarm")
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
