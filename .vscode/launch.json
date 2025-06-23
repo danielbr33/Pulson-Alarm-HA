@@ -10,6 +10,14 @@
                 "port": 5678
             },
             "justMyCode": false
+        },
+        {
+            "name": "Debug React Panel in Home Assistant",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:8123/pulson-alarm",
+            "webRoot": "${workspaceFolder}/pulson-frontend",
+            "sourceMaps": true
         }
     ]
 }

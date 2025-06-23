@@ -6,6 +6,7 @@ export default defineConfig({
   base: '/pulson_alarm_panel/',
   plugins: [react()],
   build: {
+    sourcemap: true,
     outDir: 'dist',
   },
 })
