@@ -1,12 +1,19 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// ✅ Ustawienia dla Home Assistant path /pulson_alarm_panel
 export default defineConfig({
-  base: '/pulson_alarm_panel/',
+  base: '/pulson-alarm-panel/',
   plugins: [react()],
   build: {
     sourcemap: true,
-    outDir: 'dist',
+    emptyOutDir: true,
+    outDir: '../custom_components/pulson_alarm/www/panel/',
+    rollupOptions: {
+      input: 'src/main.jsx',  // <- <-- NAJWAŻNIEJSZE
+      output: {
+        entryFileNames: 'assets/index-[hash].js',
+        assetFileNames: 'assets/[name].[ext]',
+      },
+    },
   },
 })

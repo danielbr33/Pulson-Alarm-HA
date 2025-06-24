@@ -11,11 +11,6 @@ cd pulson-frontend
 npm install
 npm run build
 
-# Copy built files to custom_components
-echo "Kopiowanie plików panelu do custom_components/pulson_alarm/www/panel/..."
-mkdir -p ../custom_components/pulson_alarm/www/panel/
-cp -r dist/* ../custom_components/pulson_alarm/www/panel/
-
 # Go back to project root
 cd ..
 

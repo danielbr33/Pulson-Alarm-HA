@@ -14,8 +14,8 @@ from typing import TYPE_CHECKING
 
 if os.getenv("HA_DEBUG", "0") == "1":
     import debugpy
-from homeassistant.components.frontend import async_register_built_in_panel
 from homeassistant.components.http import StaticPathConfig
+from homeassistant.components.panel_custom import async_register_panel
 from homeassistant.const import Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.loader import async_get_loaded_integration
@@ -47,20 +47,32 @@ PLATFORMS: list[Platform] = [
 async def register_panel(hass: HomeAssistant) -> None:
     """Register cudtom panel of integration."""
     panel_dir = Path(__file__).parent / "www" / "panel"
-    config = StaticPathConfig(
-        url_path="/pulson_alarm_panel",
-        path=str(panel_dir),
-        cache_headers=False,
+    assets_dir = panel_dir / "assets"
+    await hass.http.async_register_static_paths(
+        [
+            StaticPathConfig("/pulson_alarm_panel", str(panel_dir), False),
+            StaticPathConfig("/pulson_alarm_panel/assets", str(assets_dir), False),
+        ]
     )
-    await hass.http.async_register_static_paths([config])
 
-    async_register_built_in_panel(
-        hass,
-        component_name="iframe",
+    # Znajdź plik index-*.js (z hashem)
+    try:
+        js_file = next(
+            f"/pulson_alarm_panel/assets/{p.name}"
+            for p in assets_dir.iterdir()
+            if p.name.startswith("index-") and p.suffix == ".js"
+        )
+    except StopIteration as exc:
+        msg = "Bundle Reacta nie został znaleziony w katalogu assets"
+        raise FileNotFoundError(msg) from exc
+
+    await async_register_panel(
+        hass=hass,
+        frontend_url_path="pulson-alarm",
+        webcomponent_name="pulson-alarm-panel",
         sidebar_title="Pulson Alarm",
         sidebar_icon="mdi:shield-home",
-        frontend_url_path="pulson-alarm",
-        config={"url": "/pulson_alarm_panel/index.html"},
+        module_url=js_file,
         require_admin=False,
     )
 
@@ -77,21 +89,14 @@ async def async_setup_entry(
         # debugpy.breakpoint()  # noqa: ERA001
 
     """Setup MQTT connection."""
-    config = entry.data
-    host = config["host"]
-    port = int(config.get("port", 8883))
-    username = config.get("username") or ""
-    password = config.get("password") or ""
-    serial_number = config.get("serial_number") or ""
-    user_code = config.get("code") or ""
-
+    cfg_data = entry.data
     cfg = PulsonConfig(
-        host=host,
-        username=username,
-        password=password,
-        serial_number=serial_number,
-        port=port,
-        user_code=user_code,
+        host=cfg_data["host"],
+        port=int(cfg_data.get("port", 8883)),
+        username=cfg_data.get("username", ""),
+        password=cfg_data.get("password", ""),
+        serial_number=cfg_data.get("serial_number", ""),
+        user_code=cfg_data.get("code", ""),
     )
     mqtt_client = PulsonMqttClient(cfg)
 
