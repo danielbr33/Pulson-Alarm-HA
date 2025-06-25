@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import LineCardCss from "./components/LineCard.css?inline";
 
 class PulsonPanel extends HTMLElement {
   constructor() {
@@ -18,6 +19,12 @@ class PulsonPanel extends HTMLElement {
     if (this._root) return; // already initialised
     const container = document.createElement("div");
     const shadow = this.attachShadow({ mode: "open" });
+
+    // Dodaj style do shadow DOM
+    const style = document.createElement("style");
+    style.textContent = LineCardCss;
+    shadow.appendChild(style);
+
     shadow.appendChild(container);
 
     this._root = ReactDOM.createRoot(container);
