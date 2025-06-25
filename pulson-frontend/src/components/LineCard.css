@@ -1,67 +1,57 @@
 .line-card {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  background: linear-gradient(90deg, #e3f0ff 0%, #cbe5ff 100%);
-  border-radius: 18px;
-  box-shadow: 0 2px 8px #0001;
-  padding: 18px 24px;
-  margin-bottom: 18px;
-  min-width: 260px;
-  max-width: 420px;
-  transition: box-shadow 0.2s;
-}
-
-.line-card__icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.line-card__info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.line-card__header {
-  font-size: 1.25em;
-  font-weight: 700;
-  color: #1a237e;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.line-card__name {
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.line-card__status {
-  font-size: 1.1em;
-  color: #1a237e;
-  opacity: 0.85;
-}
-
-.line-card__button {
-  background: #2196f3;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
-  font-size: 1em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, opacity 0.2s;
-  box-shadow: 0 1px 4px #0002;
-}
-
-.line-card__button:disabled {
-  background: #b3e0ff;
-  color: #5c6bc0;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
+    display: flex;
+    align-items: center;
+    background: linear-gradient(90deg,#e3f0ff 0%,#cbe5ff 100%);
+    border-radius: 18px;
+    box-shadow: 0 2px 8px #0001;
+    padding: 18px 24px;
+    width: 100%;
+    max-width: 600px;
+    transition: box-shadow .2s;
+    gap: 16px;
+  }
+  
+  .line-card__icon {
+    flex: 0 0 40px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .line-card__header {
+    flex: 1 1 200px;
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #1a237e;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .line-card__status {
+    flex: 0 0 100px;
+    font-size: 1.1em;
+    color: #1a237e;
+    text-align: center;
+  }
+  
+  .line-card__button {
+    flex: 0 0 120px;
+    background: #2196f3;
+    color:#fff;
+    border:0;
+    border-radius:8px;
+    padding:8px 12px;
+    font-size:1em;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .2s, opacity .2s;
+    box-shadow:0 1px 4px #0002;
+  }
+  .line-card__button:disabled {
+    background:#b3e0ff;
+    color:#5c6bc0;
+    cursor:not-allowed;
+    opacity:.7;
+  }
+  
