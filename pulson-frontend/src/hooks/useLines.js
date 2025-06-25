@@ -6,35 +6,18 @@ export function useLines(hass) {
   useEffect(() => {
     if (!hass) return;
 
-    const states = hass.states;
-
-    const lineNumbers = new Set();
-
-    // Zbieramy numery linii na podstawie encji
-    Object.keys(states).forEach((entity_id) => {
-      const match = entity_id.match(/^(sensor|switch)\.linia_(\d+)_/);
-      if (match) {
-        lineNumbers.add(match[2]); // np. "1", "2", "3"
-      }
+    // Pobierz dane o liniach z własnego endpointu
+    hass.callApi("GET", "pulson_alarm/lines").then((data) => {
+      // Zakładamy, że data to tablica/dict linii
+      setLines(
+        Object.entries(data).map(([id, line]) => ({
+          id,
+          name: line.name || `Linia ${id}`,
+          block: line.block,
+          block_enable: line.block_enable,
+        }))
+      );
     });
-
-    const result = Array.from(lineNumbers).map((num) => {
-      const id = String(num).padStart(2, "0"); // linia_01, linia_02...
-
-      const stateEntity = states[`sensor.linia_${num}_stan`];
-      const lockEntity = states[`switch.linia_${num}_blokada`];
-
-      return {
-        id,
-        name: `Linia ${id}`,
-        status: stateEntity?.state ?? "unknown",
-        statusEntityId: stateEntity?.entity_id,
-        isLocked: lockEntity?.state === "on",
-        lockEntityId: lockEntity?.entity_id,
-      };
-    });
-
-    setLines(result);
   }, [hass]);
 
   return lines;

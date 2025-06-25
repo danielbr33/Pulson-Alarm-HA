@@ -4,7 +4,17 @@ import { LineCard } from "./components/LineCard";
 import "./App.css";
 
 function App({ hass }) {
+  const [linesData, setLinesData] = React.useState({});
   const lines = useLines(hass);
+
+  // Funkcja do obsługi blokowania/odblokowania
+  const handleToggleBlock = (index, line) => {
+    if (!hass) return;
+    const entityId = `switch.linia_${index}_blokada`;
+    hass.callService("switch", line.block === "1" ? "turn_off" : "turn_on", {
+      entity_id: entityId,
+    });
+  };
 
   // Przykład REST – jeden strzał po załadowaniu panelu
   React.useEffect(() => {
@@ -17,9 +27,13 @@ function App({ hass }) {
 
   return (
     <div className="lines-grid">
-      {lines.length === 0 && <p>Brak wykrytych linii.</p>}
-      {lines.map((line) => (
-        <LineCard key={line.id} line={line} hass={hass} />
+      {Object.entries(lines).map(([index, line]) => (
+        <LineCard
+          key={index}
+          index={index}
+          line={line}
+          onToggleBlock={() => handleToggleBlock(index, line)}
+        />
       ))}
     </div>
   );

@@ -18,6 +18,7 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.components.panel_custom import async_register_panel
 from homeassistant.const import Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.http import HomeAssistantView
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import IntegrationPulsonAlarmApiClient
@@ -163,6 +164,7 @@ async def async_setup_entry(
     await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    hass.http.register_view(PulsonLinesView(api_client))
     await register_panel(hass)  # noqa: ERA001
     return True
 
@@ -185,3 +187,16 @@ async def async_reload_entry(
     """Reload config entry."""
     await async_unload_entry(hass, entry)
     await async_setup_entry(hass, entry)
+
+
+class PulsonLinesView(HomeAssistantView):
+    url = "/api/pulson_alarm/lines"
+    name = "api:pulson_alarm_lines"
+    requires_auth = True
+
+    def __init__(self, api_client):
+        self.api_client = api_client
+
+    async def get(self, request):
+        data = self.api_client.inputs 
+        return self.json(data)
