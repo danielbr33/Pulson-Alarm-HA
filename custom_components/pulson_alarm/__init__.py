@@ -165,6 +165,7 @@ async def async_setup_entry(
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     hass.http.register_view(PulsonLinesView(api_client))
+    hass.http.register_view(PulsonPartitionsView(api_client))
     await register_panel(hass)  # noqa: ERA001
     return True
 
@@ -191,12 +192,28 @@ async def async_reload_entry(
 
 class PulsonLinesView(HomeAssistantView):
     url = "/api/pulson_alarm/lines"
-    name = "api:pulson_alarm_lines"
+    name = "api:pulson_alarm:lines"
     requires_auth = True
 
     def __init__(self, api_client):
         self.api_client = api_client
 
     async def get(self, request):
-        data = self.api_client.inputs 
+        try:
+            data = self.api_client.inputs
+            return self.json(data)
+        except Exception:
+            return self.json({"error": "could not fetch data"}, status_code=500)
+
+
+class PulsonPartitionsView(HomeAssistantView):
+    url = "/api/pulson_alarm/partitions"
+    name = "api:pulson_alarm:partitions"
+    requires_auth = True
+
+    def __init__(self, api_client):
+        self.api_client = api_client
+
+    async def get(self, request):
+        data = self.api_client.partitions  # lub inna struktura z danymi
         return self.json(data)

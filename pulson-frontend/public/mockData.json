@@ -5,6 +5,23 @@
     "3": { "block": "0", "block_enable": "0", "name": "Linia 3" }
   },
   "Partitions": {
-    "A": { "status": "armed", "name": "Strefa A" }
+    "1": {
+      "exit_time": 5,
+      "active": true,
+      "name": "Partycja 1",
+      "status_push": "0:0",
+      "status": 1,
+      "ready": 1,
+      "night_mode": false
+    },
+    "2": {
+      "exit_time": 10,
+      "active": true,
+      "name": "Partycja 2",
+      "status_push": "0:0",
+      "status": 0,
+      "ready": 0,
+      "night_mode": true
+    }
   }
 }

@@ -46,3 +46,46 @@ export function useLines(hass) {
 
   return lines;
 }
+
+// Nowy hook do partycji
+export function usePartitions(hass) {
+  const [partitions, setPartitions] = useState([]);
+
+  useEffect(() => {
+    if (!hass) {
+      fetch(`${import.meta.env.BASE_URL}mockData.json`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Brak pliku mockData.json");
+          return res.json();
+        })
+        .then((data) => {
+          const partitionsData = data.Partitions || {};
+          setPartitions(
+            Object.entries(partitionsData)
+              .map(([id, p]) => ({
+                id,
+                exit_time: Number(p.exit_time),
+                active: Boolean(p.active),
+                name: p.name,
+                status_push: p.status_push,
+                status: Number(p.status),
+                ready: Number(p.ready),
+                night_mode: Boolean(p.night_mode)
+              }))
+              .filter((p) => p.active === true)
+          );
+        })
+        .catch(() => setPartitions([]));
+      return;
+    }
+    hass.callApi("GET", "pulson_alarm/partitions").then((data) => {
+      setPartitions(
+        Object.entries(data)
+          .map(([id, p]) => ({ id, ...p }))
+          .filter((p) => p.active === true)
+      );
+    });
+  }, [hass]);
+
+  return partitions;
+}
