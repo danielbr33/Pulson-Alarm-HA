@@ -1,0 +1,10 @@
+{
+  "Lines": {
+    "1": { "block": "0", "block_enable": "1", "name": "Linia 1" },
+    "2": { "block": "1", "block_enable": "1", "name": "Linia 2" },
+    "3": { "block": "0", "block_enable": "0", "name": "Linia 3" }
+  },
+  "Partitions": {
+    "A": { "status": "armed", "name": "Strefa A" }
+  }
+}

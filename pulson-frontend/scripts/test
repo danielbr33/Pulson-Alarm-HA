@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+echo "Instaluję zależności frontendowe..."
+npm install
+
+echo "Buduję stronę produkcyjną (dist)..."
+npm run build
+
+echo "Uruchamiam frontend w trybie deweloperskim..."
+npm run dev -- --host

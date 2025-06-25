@@ -7,7 +7,7 @@ export default defineConfig({
   build: {
     sourcemap: true,
     emptyOutDir: true,
-    outDir: '../custom_components/pulson_alarm/www/panel/',
+    outDir: 'dist',
     rollupOptions: {
       input: 'src/main.jsx',  // <- <-- NAJWAŻNIEJSZE
       output: {
