@@ -81,7 +81,16 @@ export function usePartitions(hass) {
     hass.callApi("GET", "pulson_alarm/partitions").then((data) => {
       setPartitions(
         Object.entries(data)
-          .map(([id, p]) => ({ id, ...p }))
+          .map(([id, p]) => ({
+            id,
+            exit_time: Number(p.exit_time),
+            active: p.active === true || p.active === "true",
+            name: p.name,
+            status_push: p.status_push,
+            status: Number(p.status),
+            ready: Number(p.ready),
+            night_mode: p.night_mode === true || p.night_mode === "true"
+          }))
           .filter((p) => p.active === true)
       );
     });

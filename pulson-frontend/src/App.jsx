@@ -26,22 +26,26 @@ function App({ hass }) {
   };
 
   return (
-    <div className="lines-grid">
-      {partitions.map((partition) => (
-        <PartitionCard
-          key={partition.id}
-          partition={partition}
-          onArm={() => armPartition(partition.id)}
-          onArmNight={() => armNightPartition(partition.id)}
-        />
-      ))}
-      {Object.entries(lines).map(([index, line]) => (
-        <LineCard
-          key={index}
-          line={line}
-          onToggleBlock={() => toggleBlock(index, line)}
-        />
-      ))}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px' }}>
+      <div className="partitions-panel lines-grid">
+        {partitions.map((partition) => (
+          <PartitionCard
+            key={partition.id}
+            partition={partition}
+            onArm={() => armPartition(partition.id)}
+            onArmNight={() => armNightPartition(partition.id)}
+          />
+        ))}
+      </div>
+      <div className="lines-panel lines-grid">
+        {Object.entries(lines).map(([index, line]) => (
+          <LineCard
+            key={index}
+            line={line}
+            onToggleBlock={() => toggleBlock(index, line)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
