@@ -8,5 +8,5 @@ zlib-ng
 isal
 
 # Needed to work my application
-debugpy==1.8.14
+debugpy==1.8.18
 asyncio-mqtt==0.16.2
